@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My NFT Gallery</title>
+</head>
+<body>
+  <h1>My NFT Gallery</h1>
+  <div id="gallery"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.3.5/web3.min.js"></script>
+  <script>
+    // Replace the placeholders with your own values
+    const contractAddress = '0x9fa98ABE7a98549B2402282d4cb1773eF66254DB';
+    const contractABI = [
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "to",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "tokenId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "approve",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        // Insert your contract ABI here
+    ];
+    const web3ProviderUrl = 'https://rinkeby.infura.io/v3/YOUR_INFURA_PROJECT_ID';
+    const metadataEndpoint = 'https://raw.githubusercontent.com/BnSamm/Porklicator/main';
+    const placeholderImageUrl = 'https://raw.githubusercontent.com/BnSamm/Porklicator/main/porkstonedrainbowbong.png';
+
+    async function init() {
+      // Initialize Web3
+      if (window.ethereum) {
+        window.web3 = new Web3(window.ethereum);
+        await window.ethereum.enable();
+      } else if (window.web3) {
+        window.web3 = new Web3(window.web3.currentProvider);
+      } else {
+        console.error('No web3 provider detected');
+        return;
+      }
+
+      // Initialize contract
+      const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+      // Get total supply of tokens
+      const totalSupply = await contract.methods.totalSupply().call();
+
+      // Display NFTs
+      const gallery = document.getElementById('gallery');
+      for (let i = 1; i <= totalSupply; i++) {
+        const tokenId = i;
+        const metadataResponse = await fetch(`${metadataEndpoint}/PORKERSTONED.json`);
+        const metadata = await metadataResponse.json();
+        const imageUrl = metadata.image || placeholderImageUrl;
+
+        const nftElement = document.createElement('div');
+        nftElement.innerHTML = `
+          <h3>${metadata.name}</h3>
+          <img src="${imageUrl}" alt="${metadata.name}" style="max-width: 200px;">
+          <p>Description: ${metadata.description}</p>
+        `;
+        gallery.appendChild(nftElement);
+      }
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
